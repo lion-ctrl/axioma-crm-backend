@@ -1,5 +1,11 @@
 
 
 exports.autenticarUsuario = (req,res) => {
-    res.send("DESDE LOGIN");
+}
+
+exports.obtenerUsuario = (req,res) => {
+}
+
+exports.crearUsuario = (req,res) => {
+
 }
