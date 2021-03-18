@@ -10,25 +10,29 @@ const ProductosSchema = new Schema({
 		type: Number,
 		required: true,
 	},
-    precioVenta: {
+	precioVenta: {
 		type: Number,
 		required: true,
 		trim: true,
 	},
-	costoTotal:{
-		type: Number,
-		required: true,
-		trim: true
-	},
-	VentaTotal:{
-		type: Number,
-		required: true,
-		trim: true
-	},
-    cantidad: {
+	costoTotal: {
 		type: Number,
 		required: true,
 		trim: true,
+	},
+	ventaTotal: {
+		type: Number,
+		required: true,
+		trim: true,
+	},
+	cantidad: {
+		type: Number,
+		required: true,
+		trim: true,
+	},
+	metodoContable: {
+		type: String,
+		default: "CANTIDAD"
 	},
 	imagen: {
 		type: String,
