@@ -38,6 +38,11 @@ const ProductosSchema = new Schema({
 		type: String,
 		trim: true,
 	},
+	slug:{
+		type: String,
+		trim: true,
+		required: true
+	},
 	creado: {
 		type: Date,
 		default: Date.now(),

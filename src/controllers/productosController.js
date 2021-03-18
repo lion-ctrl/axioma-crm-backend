@@ -1,6 +1,7 @@
 const multer = require("multer");
 const shortid = require("shortid");
 const path = require("path");
+const slug = require("slug");
 
 const Productos = require("../models/Productos");
 
@@ -49,12 +50,17 @@ exports.subirImagen = (req, res, next) => {
 };
 
 exports.nuevoProducto = async (req,res) => {
-    console.log(req.body);
-    // try {
-        
-    // } catch (error) {
-        
-    // }
+    const producto = new Productos(req.body);
+    try {
+        producto.costoTotal = producto.cantidad * producto.precioCosto;
+        producto.ventaTotal = producto.cantidad * producto.precioVenta;
+        producto.slug = slug(`${producto.nombre}-${shortid.generate()}`);
+        await producto.save();
+        res.status(200).json(producto);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({msg:"Hubo un error"});
+    }
 }
 
 exports.mostrarProductos = async (req,res) => {

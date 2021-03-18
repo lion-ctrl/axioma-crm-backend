@@ -11,6 +11,7 @@ require("./config/db")();
 // ? configuraciones
 app.set("port", process.env.PORT || 4000);
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 // ? Archivos Estaticos
