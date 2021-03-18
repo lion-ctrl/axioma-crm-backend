@@ -6,12 +6,23 @@ const ProductosSchema = new Schema({
 		required: true,
 		trim: true,
 	},
-	precio: {
+	precioCompra: {
 		type: Number,
 		required: true,
 	},
+    precioVenta: {
+		type: Number,
+		required: true,
+		trim: true,
+	},
+    cantidad: {
+		type: Number,
+		required: true,
+		trim: true,
+	},
 	imagen: {
 		type: String,
+		trim: true,
 	},
 	creado: {
 		type: Date,
