@@ -1,7 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator");
-require("dotenv").config({path:"variables.env"})
 
 const Usuarios = require("../models/Usuarios");
 
