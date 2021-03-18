@@ -33,9 +33,14 @@ exports.autenticarUsuario = async (req, res) => {
         }
 };
 
-exports.obtenerUsuario = (req, res) => {
-    console.log(req.usuarioId);
-    console.log("Obtener Usuario");
+exports.obtenerUsuario = async (req, res) => {
+    try {
+        const usuario = await Usuarios.findById(req.usuarioId).select("-password");
+        return res.status(200).json(usuario)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({msg: "Hubo un error"});
+    }
 };
 
 exports.validarNuevoUsuario = [
