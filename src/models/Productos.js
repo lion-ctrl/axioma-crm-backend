@@ -6,7 +6,7 @@ const ProductosSchema = new Schema({
 		required: true,
 		trim: true,
 	},
-	precioCompra: {
+	precioCosto: {
 		type: Number,
 		required: true,
 	},
@@ -14,6 +14,16 @@ const ProductosSchema = new Schema({
 		type: Number,
 		required: true,
 		trim: true,
+	},
+	costoTotal:{
+		type: Number,
+		required: true,
+		trim: true
+	},
+	VentaTotal:{
+		type: Number,
+		required: true,
+		trim: true
 	},
     cantidad: {
 		type: Number,
