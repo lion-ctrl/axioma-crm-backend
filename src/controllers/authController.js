@@ -5,16 +5,45 @@ require("dotenv").config({path:"variables.env"})
 
 const Usuarios = require("../models/Usuarios");
 
-exports.autenticarUsuario = (req, res) => {};
+exports.validarUsuario = [
+	check("email", "Agrega un email valido").isEmail(),
+	check("password", "La contraseña no puede estar vacia").notEmpty(),
+	function (req, res, next) {
+		const errores = validationResult(req);
+		if (!errores.isEmpty()) {
+			return res.status(400).json({ errores: errores.array() });
+		}
+		next();
+	},
+];
 
-exports.obtenerUsuario = (req, res) => {};
+exports.autenticarUsuario = async (req, res) => {
+        const {email,password} = req.body;
+        try {
+            let usuario = await Usuarios.findOne({email});
+            if(!usuario) return res.status(400).json({msg: "No Existe ese usuario"});
+
+            if(!bcrypt.compareSync(password,usuario.password)) {
+                return res.status(400).json({msg: "Contraseña Incorrecta"})
+            }
+            const token = jwt.sign({ _id: usuario._id }, process.env.SECRETA, { expiresIn: "24h" });
+            return res.status(200).json({token});
+        } catch (error) {
+            console.log(error);
+        }
+};
+
+exports.obtenerUsuario = (req, res) => {
+    console.log(req.usuarioId);
+    console.log("Obtener Usuario");
+};
 
 exports.validarNuevoUsuario = [
 	check("nombre", "El nombre es obligatorio").notEmpty(),
 	check("email", "Agrega un email valido").isEmail(),
 	check("password", "La contraseña debe ser de minimo 6 caracteres").isLength({
 		min: 6,
-	}),
+	}).notEmpty(),
 	function (req, res, next) {
 		const errores = validationResult(req);
 		if (!errores.isEmpty()) {
@@ -35,9 +64,7 @@ exports.crearUsuario = async (req, res) => {
 		usuario.password = await bcrypt.hash(req.body.password, salt);
 		await usuario.save();
 
-		// JWT
-		const token = jwt.sign({ _id: usuario._id }, process.env.SECRETA, { expiresIn: "24h" });
-        return res.status(200).json({token})
+        return res.status(200).json({msg:"Usuario Creado satisfactoriamente"});
 	} catch (error) {
 		console.log(error);
         res.status(400).json({msg: "Hubo un Error"});

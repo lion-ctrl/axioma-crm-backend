@@ -20,6 +20,10 @@ const UsuariosSchema = new Schema({
 		type: String,
 		required: true,
 	},
+	rol: {
+		type: String,
+		default: "EMPLEADO"
+	},
 	creado: {
 		type: Date,
 		default: Date.now(),
