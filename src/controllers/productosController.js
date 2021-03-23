@@ -89,16 +89,18 @@ exports.mostrarProducto = async (req, res) => {
 exports.actualizarProducto = async (req, res) => {
 	const nuevoProducto = req.body;
 	try {
-		const producto = await Productos.findOne({_id:req.params.id});
+		const producto = await Productos.findOne({ _id: req.params.id });
 		if (!producto) {
 			res.status(400).json({ msg: "Ese producto no existe" });
 			return;
 		}
-		const productoNombre = await Productos.findOne({nombre: nuevoProducto.nombre});
+		const productoNombre = await Productos.findOne({
+			nombre: nuevoProducto.nombre,
+		});
 		if (productoNombre) {
 			if (productoNombre._id.toString() !== producto._id.toString()) {
 				res.status(400).json({ msg: "Ya esta registrado ese producto" });
-				return
+				return;
 			}
 		}
 		if (req.file) {
@@ -107,13 +109,26 @@ exports.actualizarProducto = async (req, res) => {
 			nuevoProducto.imagen = producto.imagen;
 		}
 		nuevoProducto.slug = slug(`${nuevoProducto.nombre}-${shortid.generate()}`);
-		nuevoProducto.costoTotal = nuevoProducto.cantidad * nuevoProducto.precioCosto;
+		nuevoProducto.costoTotal =
+			nuevoProducto.cantidad * nuevoProducto.precioCosto;
 		await Productos.findByIdAndUpdate({ _id: req.params.id }, nuevoProducto);
-		res.status(200).json({msg: "Producto Actualizado"})
+		res.status(200).json({ msg: "Producto Actualizado" });
 	} catch (error) {
 		console.log(error);
 		res.status(400).json({ msg: "Ese producto no existe" });
 	}
 };
 
-exports.eliminarProducto = async (req, res) => {};
+exports.eliminarProducto = async (req, res) => {
+	try {
+		const producto = await Productos.findOne({ _id: req.params.id });
+		if (!producto) {
+			res.status(400).json({ msg: "Ese producto no existe" });
+			return;
+		}
+		await Productos.findByIdAndDelete(req.params.id);
+		res.json({ msg: "Producto Eliminado Correctamente" });
+	} catch (error) {
+		res.status(400).json({ msg: "Ese producto no existe" });
+	}
+};

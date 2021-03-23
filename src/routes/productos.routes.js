@@ -18,6 +18,6 @@ router
 		productosController.subirImagen,
 		productosController.actualizarProducto
 	)
-	.delete("/", authjwt, productosController.eliminarProducto);
+	.delete("/:id", authjwt, productosController.eliminarProducto);
 
 module.exports = router;
