@@ -94,6 +94,7 @@ exports.actualizarProducto = async (req, res) => {
 			res.status(400).json({ msg: "Ese producto no existe" });
 			return;
 		}
+
 		const productoNombre = await Productos.findOne({
 			nombre: nuevoProducto.nombre,
 		});
@@ -103,14 +104,20 @@ exports.actualizarProducto = async (req, res) => {
 				return;
 			}
 		}
+
 		if (req.file) {
 			nuevoProducto.imagen = req.file.filename;
 		} else {
 			nuevoProducto.imagen = producto.imagen;
 		}
+
 		nuevoProducto.slug = slug(`${nuevoProducto.nombre}-${shortid.generate()}`);
-		nuevoProducto.costoTotal =
-			nuevoProducto.cantidad * nuevoProducto.precioCosto;
+
+		if(nuevoProducto.cantidad && nuevoProducto.precioCosto) {
+			nuevoProducto.costoTotal =
+				nuevoProducto.cantidad * nuevoProducto.precioCosto;
+		}
+
 		await Productos.findByIdAndUpdate({ _id: req.params.id }, nuevoProducto);
 		res.status(200).json({ msg: "Producto Actualizado" });
 	} catch (error) {
