@@ -67,9 +67,14 @@ exports.nuevoProducto = async (req, res) => {
 	}
 };
 
-exports.mostrarProductos = async (req, res) => {};
+exports.mostrarProductos = async (req, res) => {
+	const productos = await Productos.find({}); 
+	res.status(200).json(productos);
+};
 
-exports.mostrarProducto = async (req, res) => {};
+exports.mostrarProducto = async (req, res) => {
+	
+};
 
 exports.actualizarProducto = async (req, res) => {};
 

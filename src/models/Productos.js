@@ -23,8 +23,8 @@ const ProductosSchema = new Schema({
 	},
 	ventaTotal: {
 		type: Number,
-		required: true,
 		trim: true,
+		default:0
 	},
 	cantidad: {
 		type: Number,
