@@ -36,7 +36,9 @@ exports.subirImagen = (req, res, next) => {
 		if (error) {
 			if (error instanceof multer.MulterError) {
 				if (error.code === "LIMIT_FILE_SIZE") {
-					return res.status(400).json({ msg: "Imagen muy pesada, maximo 100KB" });
+					return res
+						.status(400)
+						.json({ msg: "Imagen muy pesada, maximo 100KB" });
 				} else {
 					return res.status(400).json({ msg: error.message });
 				}
@@ -57,7 +59,6 @@ exports.nuevoProducto = async (req, res) => {
 			producto.imagen = req.file.filename;
 		}
 		producto.costoTotal = producto.cantidad * producto.precioCosto;
-		producto.ventaTotal = producto.cantidad * producto.precioVenta;
 		producto.slug = slug(`${producto.nombre}-${shortid.generate()}`);
 		await producto.save();
 		res.status(200).json(producto);
@@ -68,14 +69,51 @@ exports.nuevoProducto = async (req, res) => {
 };
 
 exports.mostrarProductos = async (req, res) => {
-	const productos = await Productos.find({}); 
+	const productos = await Productos.find({});
 	res.status(200).json(productos);
 };
 
 exports.mostrarProducto = async (req, res) => {
-	
+	try {
+		const producto = await Productos.findById(req.params.id);
+		if (!producto) {
+			res.json({ msg: "Ese producto no existe" });
+			return;
+		}
+		res.json(producto);
+	} catch (error) {
+		console.log(error);
+	}
 };
 
-exports.actualizarProducto = async (req, res) => {};
+exports.actualizarProducto = async (req, res) => {
+	const nuevoProducto = req.body;
+	try {
+		const producto = await Productos.findOne({_id:req.params.id});
+		if (!producto) {
+			res.status(400).json({ msg: "Ese producto no existe" });
+			return;
+		}
+		const productoNombre = await Productos.findOne({nombre: nuevoProducto.nombre});
+		if (productoNombre) {
+			if (productoNombre._id.toString() !== producto._id.toString()) {
+				res.status(400).json({ msg: "Ya esta registrado ese producto" });
+				return
+			}
+		}
+		if (req.file) {
+			nuevoProducto.imagen = req.file.filename;
+		} else {
+			nuevoProducto.imagen = producto.imagen;
+		}
+		nuevoProducto.slug = slug(`${nuevoProducto.nombre}-${shortid.generate()}`);
+		nuevoProducto.costoTotal = nuevoProducto.cantidad * nuevoProducto.precioCosto;
+		await Productos.findByIdAndUpdate({ _id: req.params.id }, nuevoProducto);
+		res.status(200).json({msg: "Producto Actualizado"})
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({ msg: "Ese producto no existe" });
+	}
+};
 
 exports.eliminarProducto = async (req, res) => {};

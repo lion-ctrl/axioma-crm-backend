@@ -12,7 +12,12 @@ router
 	)
 	.get("/", authjwt, productosController.mostrarProductos)
 	.get("/:id", authjwt, productosController.mostrarProducto)
-	.put("/", authjwt, productosController.actualizarProducto)
+	.put(
+		"/:id",
+		authjwt,
+		productosController.subirImagen,
+		productosController.actualizarProducto
+	)
 	.delete("/", authjwt, productosController.eliminarProducto);
 
 module.exports = router;
