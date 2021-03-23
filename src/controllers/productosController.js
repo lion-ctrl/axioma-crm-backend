@@ -121,7 +121,6 @@ exports.actualizarProducto = async (req, res) => {
 		await Productos.findByIdAndUpdate({ _id: req.params.id }, nuevoProducto);
 		res.status(200).json({ msg: "Producto Actualizado" });
 	} catch (error) {
-		console.log(error);
 		res.status(400).json({ msg: "Ese producto no existe" });
 	}
 };
