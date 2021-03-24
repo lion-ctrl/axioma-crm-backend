@@ -1,19 +1,10 @@
 const { model, Schema } = require("mongoose");
 
 const VentasSchema = new Schema({
-	venta: [
-		{
-			producto: {
-				type: Schema.Types.ObjectId,
-				ref: "productos",
-				required: true,
-			},
-			cantidad: {
-				type: Number,
-				required: true,
-			},
-		},
-	],
+	ventas: {
+		type: Array,
+		required: true,
+	},
 	total: {
 		type: Number,
 		required: true,
@@ -21,6 +12,11 @@ const VentasSchema = new Schema({
 	pago: {
 		type: String,
 		trim: true,
+	},
+	usuario: {
+		type: Schema.Types.ObjectId,
+		ref: "usuario",
+		required: true,
 	},
 	creado: {
 		type: Date,

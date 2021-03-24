@@ -21,6 +21,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/productos", require("./routes/productos.routes"));
 app.use("/api/categorias", require("./routes/categorias.routes"));
+app.use("/api/ventas", require("./routes/ventas.routes"));
 
 app.listen(app.get("port"), function () {
 	console.log("Server on Port", app.get("port"));
