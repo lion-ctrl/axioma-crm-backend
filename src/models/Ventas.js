@@ -1,10 +1,7 @@
 const { model, Schema } = require("mongoose");
 
 const VentasSchema = new Schema({
-	ventas: {
-		type: Array,
-		required: true,
-	},
+	ventas: Array,
 	total: {
 		type: Number,
 		required: true,
