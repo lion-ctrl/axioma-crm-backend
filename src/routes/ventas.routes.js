@@ -6,8 +6,8 @@ const ventasController = require("../controllers/ventasController");
 router
 	.post("/", authjwt, ventasController.nuevaVenta)
 	.get("/", authjwt, ventasController.mostrarVentas)
-	// .get("/:id", authjwt, productosController.mostrarProducto)
+	.get("/:id", authjwt, ventasController.mostrarVenta)
 	// .put("/:id", authjwt, productosController.actualizarProducto)
-	// .delete("/:id", authjwt, productosController.eliminarProducto);
+	.delete("/:id", authjwt, ventasController.eliminarVenta);
 
 module.exports = router;

@@ -30,16 +30,38 @@ exports.nuevaVenta = async (req, res) => {
 };
 
 exports.mostrarVentas = async (req, res) => {
-	const {fechaInicial, fechaFinal} = req.body;
+	const { fechaInicial, fechaFinal } = req.body;
 	try {
 		const ventas = await Ventas.find({
 			$and: [
-				{ creado: { $gte: new Date(fechaInicial) } },
-				{ creado: { $lte: new Date(fechaFinal) } },
+				{ creado: { $gte: new Date(`${fechaInicial}T00:00:00.000+00:00`) } },
+				{ creado: { $lte: new Date(`${fechaFinal}T00:59:59.999+00:00`) } },
 			],
-		}).populate({ path: "ventas.productoId", model: "productos" }).select();
+		});
 		res.status(200).json(ventas);
 	} catch (error) {
 		console.log(error);
 	}
 };
+
+exports.mostrarVenta = async (req, res) => {
+	try {
+		const venta = await Ventas.findById(req.params.id);
+		if (!venta) return res.status(400).json({ msg: "No existe esa venta" });
+		res.status(200).json(venta);
+	} catch (error) {
+		res.status(400).json({ msg: "No existe esa venta" });
+	}
+};
+
+exports.eliminarVenta = async (req,res) => {
+	try {
+		const venta = await Ventas.findById(req.params.id);
+		if (!venta) return res.status(400).json({ msg: "No existe esa venta" });
+		
+		await Ventas.findByIdAndDelete(req.params.id);
+		res.status(200).json({ msg: "Venta Eliminada" });
+	} catch (error) {
+		res.status(400).json({ msg: "No existe esa venta" });
+	}
+}
