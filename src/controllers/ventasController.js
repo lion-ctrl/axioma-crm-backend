@@ -20,7 +20,7 @@ exports.nuevaVenta = async (req, res) => {
 		}
 		// - Asignar el usuario que realizo la venta
 		let nuevaVenta = new Ventas(req.body);
-		nuevaVenta.usuario = req.usuarioId;
+		nuevaVenta.usuario = req.usuario._id;
 
 		await nuevaVenta.save();
 		res.status(200).json(nuevaVenta);
@@ -54,14 +54,55 @@ exports.mostrarVenta = async (req, res) => {
 	}
 };
 
-exports.eliminarVenta = async (req,res) => {
+exports.eliminarVenta = async (req, res) => {
 	try {
 		const venta = await Ventas.findById(req.params.id);
 		if (!venta) return res.status(400).json({ msg: "No existe esa venta" });
-		
+
 		await Ventas.findByIdAndDelete(req.params.id);
 		res.status(200).json({ msg: "Venta Eliminada" });
 	} catch (error) {
 		res.status(400).json({ msg: "No existe esa venta" });
 	}
-}
+};
+
+exports.actualizarVenta = async (req, res) => {
+	const { ventas } = req.body;
+
+	try {
+		const ventaAnterior = await Ventas.findById(req.params.id);
+		if (!ventaAnterior)
+			return res.status(400).json({ msg: "No existe esa venta" });
+
+		if (req.usuario.rol === "EMPLEADO") {
+			if (ventaAnterior.usuario !== req.usuario._id)
+				return res.status(400).json({ msg: "Acción no permitida" });
+		}
+
+		for await (const articulo of ventaAnterior.ventas) {
+			const producto = await Productos.findById(articulo.productoId);
+			producto.cantidad = producto.cantidad + articulo.cantidad;
+			await producto.save();
+		}
+
+		for await (const articulo of ventas) {
+			const { productoId } = articulo;
+			const producto = await Productos.findById(productoId);
+			if (articulo.cantidad > producto.cantidad) {
+				res.status(400).json({
+					msg: `El Producto ${producto.nombre} excede la cantidad disponible`,
+				});
+				return;
+			} else {
+				producto.cantidad = producto.cantidad - articulo.cantidad;
+				await producto.save();
+			}
+		}
+
+		await Ventas.findByIdAndUpdate({ _id: req.params.id }, req.body);
+
+		res.status(200).json({ msg: "Venta Actualizada" });
+	} catch (error) {
+		console.log(error);
+	}
+};

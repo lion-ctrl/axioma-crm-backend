@@ -17,37 +17,45 @@ exports.validarUsuario = [
 ];
 
 exports.autenticarUsuario = async (req, res) => {
-        const {email,password} = req.body;
-        try {
-            let usuario = await Usuarios.findOne({email});
-            if(!usuario) return res.status(400).json({msg: "No Existe ese usuario"});
+	const { email, password } = req.body;
+	try {
+		let usuario = await Usuarios.findOne({ email });
+		if (!usuario) return res.status(400).json({ msg: "No Existe ese usuario" });
 
-            if(!bcrypt.compareSync(password,usuario.password)) {
-                return res.status(400).json({msg: "Contraseña Incorrecta"})
-            }
-            const token = jwt.sign({ _id: usuario._id }, process.env.SECRETA, { expiresIn: "24h" });
-            return res.status(200).json({token});
-        } catch (error) {
-            console.log(error);
-        }
+		if (!bcrypt.compareSync(password, usuario.password)) {
+			return res.status(400).json({ msg: "Contraseña Incorrecta" });
+		}
+		const token = jwt.sign(
+			{ _id: usuario._id, rol: usuario.rol },
+			process.env.SECRETA,
+			{ expiresIn: "24h" }
+		);
+		return res.status(200).json({ token });
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 exports.obtenerUsuario = async (req, res) => {
-    try {
-        const usuario = await Usuarios.findById(req.usuarioId).select("-password");
-        return res.status(200).json(usuario)
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({msg: "Hubo un error"});
-    }
+	try {
+		const usuario = await Usuarios.findById(req.usuario._id).select(
+			"-password"
+		);
+		return res.status(200).json(usuario);
+	} catch (error) {
+		console.log(error);
+		res.status(500).json({ msg: "Hubo un error" });
+	}
 };
 
 exports.validarNuevoUsuario = [
 	check("nombre", "El nombre es obligatorio").notEmpty(),
 	check("email", "Agrega un email valido").isEmail(),
-	check("password", "La contraseña debe ser de minimo 6 caracteres").isLength({
-		min: 6,
-	}).notEmpty(),
+	check("password", "La contraseña debe ser de minimo 6 caracteres")
+		.isLength({
+			min: 6,
+		})
+		.notEmpty(),
 	function (req, res, next) {
 		const errores = validationResult(req);
 		if (!errores.isEmpty()) {
@@ -68,9 +76,9 @@ exports.crearUsuario = async (req, res) => {
 		usuario.password = await bcrypt.hash(req.body.password, salt);
 		await usuario.save();
 
-        return res.status(200).json({msg:"Usuario Creado satisfactoriamente"});
+		return res.status(200).json({ msg: "Usuario Creado satisfactoriamente" });
 	} catch (error) {
 		console.log(error);
-        res.status(400).json({msg: "Hubo un Error"});
+		res.status(400).json({ msg: "Hubo un Error" });
 	}
 };

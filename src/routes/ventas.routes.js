@@ -7,7 +7,7 @@ router
 	.post("/", authjwt, ventasController.nuevaVenta)
 	.get("/", authjwt, ventasController.mostrarVentas)
 	.get("/:id", authjwt, ventasController.mostrarVenta)
-	// .put("/:id", authjwt, productosController.actualizarProducto)
+	.put("/:id", authjwt, ventasController.actualizarVenta)
 	.delete("/:id", authjwt, ventasController.eliminarVenta);
 
 module.exports = router;
