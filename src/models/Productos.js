@@ -13,7 +13,6 @@ const ProductosSchema = new Schema({
 	},
 	precioVenta: {
 		type: Number,
-		required: true,
 		trim: true,
 	},
 	costoTotal: {
@@ -21,7 +20,7 @@ const ProductosSchema = new Schema({
 		required: true,
 		trim: true,
 	},
-	ventaTotal: {
+	ganancias: {
 		type: Number,
 		trim: true,
 		default:0
@@ -44,6 +43,7 @@ const ProductosSchema = new Schema({
 		trim: true,
 		required: true
 	},
+	pedidos:Array,
 	categoria:{
 		type:Schema.Types.ObjectId,
 		ref:"categorias"

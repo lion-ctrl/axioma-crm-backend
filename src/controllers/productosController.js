@@ -51,7 +51,9 @@ exports.subirImagen = (req, res, next) => {
 };
 
 exports.nuevoProducto = async (req, res) => {
-	let producto = await Productos.findOne({ nombre: req.body.nombre });
+	let producto = await Productos.findOne({
+		nombre: req.body.nombre.toLowerCase(),
+	});
 	if (producto) return res.status(400).json({ msg: "Ya Existe ese producto" });
 	producto = new Productos(req.body);
 	try {
@@ -60,6 +62,7 @@ exports.nuevoProducto = async (req, res) => {
 		}
 		producto.costoTotal = producto.cantidad * producto.precioCosto;
 		producto.slug = slug(`${producto.nombre}-${shortid.generate()}`);
+		producto.nombre = producto.nombre.toLowerCase();
 		await producto.save();
 		res.status(200).json(producto);
 	} catch (error) {
@@ -69,8 +72,12 @@ exports.nuevoProducto = async (req, res) => {
 };
 
 exports.mostrarProductos = async (req, res) => {
-	const productos = await Productos.find({});
-	res.status(200).json(productos);
+	try {
+		const productos = await Productos.find({});
+		res.status(200).json(productos);
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 exports.mostrarProducto = async (req, res) => {
@@ -96,7 +103,7 @@ exports.actualizarProducto = async (req, res) => {
 		}
 
 		const productoNombre = await Productos.findOne({
-			nombre: nuevoProducto.nombre,
+			nombre: nuevoProducto.nombre.toLowerCase(),
 		});
 		if (productoNombre) {
 			if (productoNombre._id.toString() !== producto._id.toString()) {
@@ -113,7 +120,7 @@ exports.actualizarProducto = async (req, res) => {
 
 		nuevoProducto.slug = slug(`${nuevoProducto.nombre}-${shortid.generate()}`);
 
-		if(nuevoProducto.cantidad && nuevoProducto.precioCosto) {
+		if (nuevoProducto.cantidad && nuevoProducto.precioCosto) {
 			nuevoProducto.costoTotal =
 				nuevoProducto.cantidad * nuevoProducto.precioCosto;
 		}
