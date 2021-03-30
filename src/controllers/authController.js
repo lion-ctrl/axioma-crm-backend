@@ -28,7 +28,7 @@ exports.autenticarUsuario = async (req, res) => {
 		const token = jwt.sign(
 			{ _id: usuario._id, rol: usuario.rol },
 			process.env.SECRETA,
-			{ expiresIn: "24h" }
+			{ expiresIn: "12h" }
 		);
 		return res.status(200).json({ token });
 	} catch (error) {
