@@ -55,11 +55,26 @@ exports.eliminarPedido = async (req, res) => {
 	try {
 		const pedido = await Pedidos.findById(req.params.id);
 		if (!pedido) return res.status(400).json({ msg: "No existe ese pedido" });
+		if (pedido.estado.trim() === "COMPLETADO") {
+			for await (const articulo of pedido.productos) {
+				const producto = await Productos.findById(articulo._id);
+				for (let i = 0; i < producto.pedidos.length; i++) {
+					console.log(producto.pedidos[i]._id);
+					console.log(pedido._id.toString());
+					if (producto.pedidos[i]._id == pedido._id.toString()) {
+						producto.pedidos.splice(i,1);
+						break;
+					}
+				}
+				await producto.save();
+			}
+		}
 
 		await pedido.delete();
 
 		res.status(200).json({ msg: "Pedido Eliminado" });
 	} catch (error) {
+		console.log(error);
 		res.status(400).json({ msg: "No existe ese pedido" });
 	}
 };
@@ -71,7 +86,7 @@ exports.actualizarPedido = async (req, res) => {
 
 		if (pedido.estado === "COMPLETADO") {
 			return res.status(400).json({
-				msg: "No se puede actualizar un pedido que ya esta como completado",
+				msg: "No se puede actualizar un pedido que ya esta como Completado",
 			});
 		}
 
@@ -92,6 +107,10 @@ exports.pedidoCompletado = async (req, res) => {
 		const pedido = await Pedidos.findById(req.params.id);
 		if (!pedido) return res.status(400).json({ msg: "No existe ese pedido" });
 
+		if (pedido.estado === "COMPLETADO") {
+			return res.status(400).json({msg:"Ese pedido ya esta como completado"})
+		}
+
 		pedido.estado = "COMPLETADO";
 
 		for await (const articulo of pedido.productos) {
@@ -100,7 +119,7 @@ exports.pedidoCompletado = async (req, res) => {
 			const costo = articulo.cantidad * articulo.precioCosto;
 			producto.costoTotal = producto.costoTotal + costo;
 			producto.cantidad += articulo.cantidad;
-			producto.pedidos.push({ _id: pedido._id, cantidad: articulo.cantidad });
+			producto.pedidos.push({ _id: pedido._id, cantidad: articulo.cantidad, total: articulo.cantidad });
 
 			await producto.save();
 		}
