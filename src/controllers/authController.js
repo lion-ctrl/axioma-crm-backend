@@ -76,7 +76,7 @@ exports.crearUsuario = async (req, res) => {
 		usuario.password = await bcrypt.hash(req.body.password, salt);
 		await usuario.save();
 
-		return res.status(200).json({ msg: "Usuario Creado satisfactoriamente" });
+		return res.status(200).json({ msg: "Usuario Creado correctamente" });
 	} catch (error) {
 		console.log(error);
 		res.status(400).json({ msg: "Hubo un Error" });
