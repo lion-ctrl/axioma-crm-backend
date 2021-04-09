@@ -2,6 +2,7 @@ const multer = require("multer");
 const shortid = require("shortid");
 const path = require("path");
 const slug = require("slug");
+const fs = require("fs");
 
 const Productos = require("../models/Productos");
 
@@ -54,7 +55,20 @@ exports.nuevoProducto = async (req, res) => {
 	let producto = await Productos.findOne({
 		nombre: req.body.nombre.toLowerCase(),
 	});
-	if (producto) return res.status(400).json({ msg: "Ya Existe ese producto" });
+	if (producto) {
+		if(req.file) {
+			const rutaImagen = path.resolve(
+				`./src/public/uploads/productos/${req.file.filename}`
+			);
+			fs.unlink(rutaImagen, (error) => {
+				if (error) {
+					console.log(error);
+				}
+				return;
+			});
+		}
+		return res.status(400).json({ msg: "Ya Existe ese producto" })
+	};
 	producto = new Productos(req.body);
 	try {
 		if (req.file) {
@@ -64,7 +78,7 @@ exports.nuevoProducto = async (req, res) => {
 		producto.slug = slug(`${producto.nombre}-${shortid.generate()}`);
 		producto.nombre = producto.nombre.toLowerCase();
 		await producto.save();
-		res.status(200).json(producto);
+		res.status(200).json({ msg: "Producto Creado" });
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({ msg: "Hubo un error" });
@@ -73,7 +87,7 @@ exports.nuevoProducto = async (req, res) => {
 
 exports.mostrarProductos = async (req, res) => {
 	try {
-		const productos = await Productos.find({});
+		const productos = await Productos.find({}).select("-pedidos").sort({creado:-1});
 		res.status(200).json(productos);
 	} catch (error) {
 		console.log(error);
@@ -82,9 +96,11 @@ exports.mostrarProductos = async (req, res) => {
 
 exports.mostrarProducto = async (req, res) => {
 	try {
-		const producto = await Productos.findById(req.params.id);
+		const producto = await Productos.findOne({ slug: req.params.slug }).select(
+			"-pedidos"
+		);
 		if (!producto) {
-			res.json({ msg: "Ese producto no existe" });
+			res.status(400).json({ msg: "Ese producto no existe" });
 			return;
 		}
 		res.json(producto);
@@ -113,9 +129,22 @@ exports.actualizarProducto = async (req, res) => {
 		}
 
 		if (req.file) {
+			if (producto.imagen) {
+				const rutaImagen = path.resolve(
+					`./src/public/uploads/productos/${producto.imagen}`
+				);
+				fs.unlink(rutaImagen, (error) => {
+					if (error) {
+						console.log(error);
+					}
+					return;
+				});
+			}
 			nuevoProducto.imagen = req.file.filename;
 		} else {
-			nuevoProducto.imagen = producto.imagen;
+			if (producto.imagen) {
+				nuevoProducto.imagen = producto.imagen;
+			}
 		}
 
 		nuevoProducto.slug = slug(`${nuevoProducto.nombre}-${shortid.generate()}`);
@@ -139,9 +168,21 @@ exports.eliminarProducto = async (req, res) => {
 			res.status(400).json({ msg: "Ese producto no existe" });
 			return;
 		}
+		if (producto.imagen) {
+			const rutaImagen = path.resolve(
+				`./src/public/uploads/productos/${producto.imagen}`
+			);
+			fs.unlink(rutaImagen, (error) => {
+				if (error) {
+					console.log(error);
+				}
+				return;
+			});
+		}
 		await Productos.findByIdAndDelete(req.params.id);
 		res.json({ msg: "Producto Eliminado Correctamente" });
 	} catch (error) {
+		console.log(error);
 		res.status(400).json({ msg: "Ese producto no existe" });
 	}
 };

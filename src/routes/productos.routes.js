@@ -11,7 +11,7 @@ router
 		productosController.nuevoProducto
 	)
 	.get("/", authjwt, productosController.mostrarProductos)
-	.get("/:id", authjwt, productosController.mostrarProducto)
+	.get("/:slug", authjwt, productosController.mostrarProducto)
 	.put(
 		"/:id",
 		authjwt,

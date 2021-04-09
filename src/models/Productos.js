@@ -27,12 +27,11 @@ const ProductosSchema = new Schema({
 	},
 	cantidad: {
 		type: Number,
-		required: true,
 		trim: true,
 	},
 	metodoContable: {
 		type: String,
-		default: "CANTIDAD"
+		default: "CONTABLE"
 	},
 	imagen: {
 		type: String,
@@ -45,8 +44,8 @@ const ProductosSchema = new Schema({
 	},
 	pedidos:Array,
 	categoria:{
-		type:Schema.Types.ObjectId,
-		ref:"categorias"
+		type:String,
+		trim: true
 	},
 	creado: {
 		type: Date,
