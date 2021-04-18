@@ -56,7 +56,7 @@ exports.nuevoProducto = async (req, res) => {
 		nombre: req.body.nombre.toLowerCase(),
 	});
 	if (producto) {
-		if(req.file) {
+		if (req.file) {
 			const rutaImagen = path.resolve(
 				`./src/public/uploads/productos/${req.file.filename}`
 			);
@@ -67,8 +67,8 @@ exports.nuevoProducto = async (req, res) => {
 				return;
 			});
 		}
-		return res.status(400).json({ msg: "Ya Existe ese producto" })
-	};
+		return res.status(400).json({ msg: "Ya Existe ese producto" });
+	}
 	producto = new Productos(req.body);
 	try {
 		if (req.file) {
@@ -87,10 +87,31 @@ exports.nuevoProducto = async (req, res) => {
 
 exports.mostrarProductos = async (req, res) => {
 	try {
-		const productos = await Productos.find({}).select("-pedidos").sort({creado:-1});
+		let productos;
+		if (req.query.hasOwnProperty("gastos")) {
+			productos = await Productos.find({})
+				.sort({ creado: -1 })
+				.select("_id precioCosto nombre");
+		} else {
+			productos = await Productos.find({}).sort({ creado: -1 });
+		}
 		res.status(200).json(productos);
 	} catch (error) {
 		console.log(error);
+		res.status(500).json({ msg: "Error en el servidor" });
+	}
+};
+
+exports.mostrarProductosCategoria = async (req, res) => {
+	const { categoria } = req.params;
+	try {
+		const productos = await Productos.find({ categoria })
+			.select("-pedidos")
+			.sort({ creado: -1 });
+		res.status(200).json(productos);
+	} catch (error) {
+		console.log(error);
+		res.status(500).json({ msg: "Error en el servidor" });
 	}
 };
 
@@ -179,8 +200,8 @@ exports.eliminarProducto = async (req, res) => {
 				return;
 			});
 		}
-		await Productos.findByIdAndDelete(req.params.id);
-		res.json({ msg: "Producto Eliminado Correctamente" });
+		await producto.delete();
+		res.json({ _id: producto._id });
 	} catch (error) {
 		console.log(error);
 		res.status(400).json({ msg: "Ese producto no existe" });

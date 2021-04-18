@@ -1,6 +1,6 @@
 const Ventas = require("../models/Ventas");
 const Productos = require("../models/Productos");
-const Pedidos = require("../models/Pedidos");
+const Gastos = require("../models/Gastos");
 
 exports.nuevaVenta = async (req, res) => {
 	const { ventas } = req.body;
@@ -27,7 +27,7 @@ exports.nuevaVenta = async (req, res) => {
 const actualizarPedidos = async (productoPedidos, cantidad, articulo) => {
 	const productosPedidosCopia = [];
 	for await (const pedido of productoPedidos) {
-		const pedidoProducto = await Pedidos.findOne({
+		const pedidoProducto = await Gastos.findOne({
 			_id: pedido._id,
 		});
 		if (pedidoProducto) {
@@ -175,7 +175,7 @@ exports.actualizarVenta = async (req, res) => {
 const devolucionPedidos = async (pedidosVentaAnterior,cantidad,articulo) => {
 	const productosPedidosCopia = [];
 	for await (const pedido of pedidosVentaAnterior) {
-		const pedidoProducto = await Pedidos.findOne({ _id: pedido._id });
+		const pedidoProducto = await Gastos.findOne({ _id: pedido._id });
 		if (pedido.total >= cantidad) {
 			pedidoProducto.ganancias -= cantidad * articulo.precioVenta;
 			pedido.cantidad += cantidad;

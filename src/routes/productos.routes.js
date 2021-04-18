@@ -11,6 +11,7 @@ router
 		productosController.nuevoProducto
 	)
 	.get("/", authjwt, productosController.mostrarProductos)
+	.get("/categoria/:categoria", authjwt, productosController.mostrarProductosCategoria)
 	.get("/:slug", authjwt, productosController.mostrarProducto)
 	.put(
 		"/:id",

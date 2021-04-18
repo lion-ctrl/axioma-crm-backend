@@ -29,10 +29,6 @@ const ProductosSchema = new Schema({
 		type: Number,
 		trim: true,
 	},
-	metodoContable: {
-		type: String,
-		default: "CONTABLE"
-	},
 	imagen: {
 		type: String,
 		trim: true,
@@ -42,7 +38,6 @@ const ProductosSchema = new Schema({
 		trim: true,
 		required: true
 	},
-	pedidos:Array,
 	categoria:{
 		type:String,
 		trim: true
