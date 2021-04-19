@@ -8,7 +8,7 @@ router
 	.get("/", authjwt, ventasController.mostrarVentas)
 	.get("/fecha", authjwt, ventasController.mostrarVentasFecha)
 	.get("/:id", authjwt, ventasController.mostrarVenta)
-	.put("/:id", authjwt, ventasController.actualizarVenta)
+	.put("/:id", authjwt, ventasController.editarVenta)
 	.delete("/:id", authjwt, ventasController.eliminarVenta);
 
 module.exports = router;

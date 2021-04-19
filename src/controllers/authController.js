@@ -1,20 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { check, validationResult } = require("express-validator");
 
 const Usuarios = require("../models/Usuarios");
-
-exports.validarUsuario = [
-	check("email", "Agrega un email valido").isEmail(),
-	check("password", "La contraseña no puede estar vacia").notEmpty(),
-	function (req, res, next) {
-		const errores = validationResult(req);
-		if (!errores.isEmpty()) {
-			return res.status(400).json({ errores: errores.array() });
-		}
-		next();
-	},
-];
 
 exports.autenticarUsuario = async (req, res) => {
 	const { email, password } = req.body;
@@ -48,23 +35,6 @@ exports.obtenerUsuario = async (req, res) => {
 	}
 };
 
-exports.validarNuevoUsuario = [
-	check("nombre", "El nombre es obligatorio").notEmpty(),
-	check("email", "Agrega un email valido").isEmail(),
-	check("password", "La contraseña debe ser de minimo 6 caracteres")
-		.isLength({
-			min: 6,
-		})
-		.notEmpty(),
-	function (req, res, next) {
-		const errores = validationResult(req);
-		if (!errores.isEmpty()) {
-			return res.status(400).json({ errores: errores.array() });
-		}
-		next();
-	},
-];
-
 exports.crearUsuario = async (req, res) => {
 	try {
 		let usuario = await Usuarios.findOne({ email: req.body.email });
@@ -82,3 +52,23 @@ exports.crearUsuario = async (req, res) => {
 		res.status(400).json({ msg: "Hubo un Error" });
 	}
 };
+
+exports.editarUsuario = async (req,res) => {
+	try {
+		const usuario = await Usuarios.findOne({_id: req.params.id});
+		if (!usuario) {
+			res.status(400).json({msg: "Ese usuario no existe"});
+			return;
+		}
+
+		if (usuario._id !== req.usuario._id) {
+			res.status(400).json({msg: "Accion no permitida"});
+			return;
+		}
+
+		const usuarioActualizado = await Usuarios.findByIdAndUpdate({_id: usuario._id},req.body,{new:true});
+		res.status(200).json(usuarioActualizado);
+	} catch (error) {
+		console.log(error);
+	}
+}

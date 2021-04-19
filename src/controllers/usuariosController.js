@@ -2,9 +2,6 @@ const Usuarios = require("../models/Usuarios");
 const Ventas = require("../models/Ventas")
 
 exports.obtenerUsuarios = async (req, res) => {
-	if (req.usuario.rol !== "ADMIN") {
-		res.status(400).json({ msg: "Acceso no permitido" });
-	}
 	try {
 		const usuarios = await Usuarios.find({ rol: "EMPLEADO" }).sort({
 			creado: -1,
@@ -17,9 +14,6 @@ exports.obtenerUsuarios = async (req, res) => {
 };
 
 exports.eliminarUsuario = async (req, res) => {
-	if (req.usuario.rol !== "ADMIN") {
-		res.status(400).json({ msg: "Acceso no permitido" });
-	}
 
 	try {
 		const usuario = await Usuarios.findById(req.params.id);
@@ -32,9 +26,6 @@ exports.eliminarUsuario = async (req, res) => {
 };
 
 exports.obtenerUsuario = async (req,res) => {
-    if (req.usuario.rol !== "ADMIN") {
-		res.status(400).json({ msg: "Acceso no permitido" });
-	}
 
     try {
 		const usuario = await Usuarios.findById(req.params.id);

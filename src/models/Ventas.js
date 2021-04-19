@@ -1,18 +1,22 @@
 const { model, Schema } = require("mongoose");
 
 const VentasSchema = new Schema({
-	ventas: Array,
+	productos: Array,
 	total: {
 		type: Number,
 		required: true,
 	},
-	pago: {
+	metodo: {
 		type: String,
-		trim: true,
+		required: true
+	},
+	nombre: {
+		type: String,
+		required: true
 	},
 	usuario: {
 		type: Schema.Types.ObjectId,
-		ref: "usuario",
+		ref: "usuarios",
 		required: true,
 	},
 	creado: {

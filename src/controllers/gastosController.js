@@ -51,7 +51,7 @@ exports.mostrarGastosFecha = async (req, res) => {
 		const gastos = await Gastos.find({
 			$and: [
 				{ creado: { $gte: new Date(`${fechai}T00:00:00.000+00:00`) } },
-				{ creado: { $lte: new Date(`${fechaf}T00:59:59.999+00:00`) } },
+				{ creado: { $lte: new Date(`${fechaf}T23:59:59.999+00:00`) } },
 			],
 		});
 		res.status(200).json(gastos);

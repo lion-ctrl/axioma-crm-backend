@@ -5,12 +5,8 @@ const authjwt = require("../middlewares/authjwt");
 
 router
 	.get("/", authjwt, authController.obtenerUsuario)
-	.post("/", authController.validarUsuario,authController.autenticarUsuario)
-	.post(
-		"/nuevo-usuario",
-        authjwt,
-		authController.validarNuevoUsuario,
-		authController.crearUsuario
-	);
+	.post("/", authController.autenticarUsuario)
+	.post("/nuevo-usuario", authjwt, authController.crearUsuario)
+	.put("/:id", authjwt, authController.editarUsuario);
 
 module.exports = router;

@@ -1,92 +1,35 @@
 const Ventas = require("../models/Ventas");
 const Productos = require("../models/Productos");
-const Gastos = require("../models/Gastos");
 
 exports.nuevaVenta = async (req, res) => {
-	const { ventas } = req.body;
+	const { productos } = req.body;
 	try {
 		// - verificar que hayan suficientes productos
-		const producto = await crearVenta(ventas);
-		if (!producto.res) {
-			res.status(400).json({
-				msg: `El Producto ${producto.nombre} excede la cantidad disponible`,
-			});
-			return;
+		for await (const articulo of productos) {
+			const { _id } = articulo;
+			const producto = await Productos.findById(_id);
+			if (articulo.resumen.cantidad > producto.cantidad) {
+				res.status(400).json({
+					msg: `El Producto ${producto.nombre} excede la cantidad disponible`,
+				});
+				return;
+			} else {
+				producto.cantidad -= articulo.resumen.cantidad;
+				producto.ganancias += articulo.resumen.cantidad * articulo.resumen.precio;
+			}
+			await producto.save();
 		}
+		
 		// - Asignar el usuario que realizo la venta
 		let nuevaVenta = new Ventas(req.body);
 		nuevaVenta.usuario = req.usuario._id;
 
 		await nuevaVenta.save();
-		res.status(200).json(nuevaVenta);
+		res.status(200).json({msg: "Venta creada"});
 	} catch (error) {
 		console.log(error);
+		res.status(400).json({msg: "Error en el servidor"});
 	}
-};
-
-const actualizarPedidos = async (productoPedidos, cantidad, articulo) => {
-	const productosPedidosCopia = [];
-	for await (const pedido of productoPedidos) {
-		const pedidoProducto = await Gastos.findOne({
-			_id: pedido._id,
-		});
-		if (pedidoProducto) {
-			if (pedido.cantidad > 0) {
-				if (pedido.cantidad >= cantidad) {
-					pedidoProducto.ganancias += cantidad * articulo.precioVenta;
-
-					pedido.cantidad = pedido.cantidad - cantidad;
-					productosPedidosCopia.push(pedido);
-					await pedidoProducto.save();
-					break;
-				} else {
-					pedidoProducto.ganancias += pedido.cantidad * articulo.precioVenta;
-					cantidad -= pedido.cantidad;
-					pedido.cantidad = 0;
-					productosPedidosCopia.push(pedido);
-					await pedidoProducto.save();
-				}
-			}
-		}
-	}
-	return productosPedidosCopia;
-};
-
-const crearVenta = async (ventas) => {
-	let product = {
-		res:true
-	};
-	for await (const articulo of ventas) {
-		const { _id } = articulo;
-		const producto = await Productos.findById(_id);
-		if (articulo.cantidad > producto.cantidad) {
-			product.res = false;
-			product.nombre = producto.nombre
-			break;
-		} else {
-			producto.cantidad = producto.cantidad - articulo.cantidad;
-			producto.ganancias += articulo.cantidad * articulo.precioVenta;
-			let cantidad = articulo.cantidad;
-
-			if (producto.pedidos.length) {
-				let pedidosActualizados = await actualizarPedidos(
-					producto.pedidos,
-					cantidad,
-					articulo
-				);
-				for (let i = 0; i < producto.pedidos.length; i++) {
-					for (let e = 0; e < pedidosActualizados.length; e++) {
-						if (pedidosActualizados[e] === producto.pedidos[i]) {
-							producto.pedidos.splice(i, 1);
-							producto.pedidos.push(pedidosActualizados[e]);
-						}
-					}
-				}
-			}
-			await producto.save();
-		}
-	}
-	return product;
 };
 
 exports.mostrarVentas = async (req, res) => {
@@ -94,35 +37,38 @@ exports.mostrarVentas = async (req, res) => {
 		const mes = new Date();
 		const ventas = await Ventas.find({
 			$expr: { $eq: [{ $month: "$creado" }, { $month: mes }] },
-		});
+		}).sort({creado: -1});
 
 		res.status(200).json(ventas);
 	} catch (error) {
 		console.log(error);
+		res.status(400).json({msg: "Error en el servidor"});
 	}
 };
 
 exports.mostrarVentasFecha = async (req, res) => {
-	const { fechaInicial, fechaFinal } = req.body;
+	const { fechai, fechaf } = req.query;
 	try {
 		const ventas = await Ventas.find({
 			$and: [
-				{ creado: { $gte: new Date(`${fechaInicial}T00:00:00.000+00:00`) } },
-				{ creado: { $lte: new Date(`${fechaFinal}T00:59:59.999+00:00`) } },
+				{ creado: { $gte: new Date(`${fechai}T00:00:00.000+00:00`) } },
+				{ creado: { $lte: new Date(`${fechaf}T23:59:59.999+00:00`) } },
 			],
 		});
 		res.status(200).json(ventas);
 	} catch (error) {
 		console.log(error);
+		res.status(400).json({ msg: "Error en el servidor" });
 	}
 };
 
 exports.mostrarVenta = async (req, res) => {
 	try {
-		const venta = await Ventas.findById(req.params.id);
+		const venta = await Ventas.findById(req.params.id).populate("usuario","-password");
 		if (!venta) return res.status(400).json({ msg: "No existe esa venta" });
 		res.status(200).json(venta);
 	} catch (error) {
+		console.log(error);
 		res.status(400).json({ msg: "No existe esa venta" });
 	}
 };
@@ -132,14 +78,14 @@ exports.eliminarVenta = async (req, res) => {
 		const venta = await Ventas.findById(req.params.id);
 		if (!venta) return res.status(400).json({ msg: "No existe esa venta" });
 
-		await Ventas.findByIdAndDelete(req.params.id);
-		res.status(200).json({ msg: "Venta Eliminada" });
+		await venta.delete();
+		res.status(200).json({_id: venta._id});
 	} catch (error) {
 		res.status(400).json({ msg: "No existe esa venta" });
 	}
 };
 
-exports.actualizarVenta = async (req, res) => {
+exports.editarVenta = async (req, res) => {
 	const ventaNueva = req.body;
 
 	try {
@@ -152,15 +98,25 @@ exports.actualizarVenta = async (req, res) => {
 				return res.status(400).json({ msg: "Acción no permitida" });
 		}
 
-		await devolucionVentas(ventaAnterior.ventas)
+		for await (const articulo of ventaAnterior.productos) {
+			const producto = await Productos.findById(articulo._id);
+			producto.cantidad += articulo.resumen.cantidad;
+			producto.ganancias -= articulo.resumen.cantidad * articulo.resumen.precio;
+			await producto.save();
+		}
 
-		// - verificar que hayan suficientes productos
-		const producto = await crearVenta(ventaNueva.ventas);
-		if (!producto.res) {
-			res.status(400).json({
-				msg: `El Producto ${producto.nombre} excede la cantidad disponible`,
-			});
-			return;
+		for await (const articulo of ventaNueva.productos) {
+			const producto = await Productos.findById(articulo._id);
+			if (articulo.resumen.cantidad > producto.cantidad) {
+				res.status(400).json({
+					msg: `El Producto ${producto.nombre} excede la cantidad disponible`,
+				});
+				return;
+			} else {
+				producto.cantidad -= articulo.resumen.cantidad;
+				producto.ganancias += articulo.resumen.cantidad * articulo.resumen.precio;
+				await producto.save();
+			}
 		}
 
 		await Ventas.findByIdAndUpdate({ _id: req.params.id }, ventaNueva);
@@ -171,46 +127,3 @@ exports.actualizarVenta = async (req, res) => {
 		res.status(400).json({ msg: "No existe esa venta" });
 	}
 };
-
-const devolucionPedidos = async (pedidosVentaAnterior,cantidad,articulo) => {
-	const productosPedidosCopia = [];
-	for await (const pedido of pedidosVentaAnterior) {
-		const pedidoProducto = await Gastos.findOne({ _id: pedido._id });
-		if (pedido.total >= cantidad) {
-			pedidoProducto.ganancias -= cantidad * articulo.precioVenta;
-			pedido.cantidad += cantidad;
-			productosPedidosCopia.push(pedido);
-			await pedidoProducto.save();
-			break;
-		} else {
-			pedidoProducto.ganancias -= pedido.total * articulo.precioVenta;
-			pedido.cantidad = pedido.total;
-			cantidad -= pedido.total;
-			productosPedidosCopia.push(pedido);
-			await pedidoProducto.save();
-		}
-	}
-	return productosPedidosCopia;
-}
-
-const devolucionVentas = async (ventas) => {
-	for await (const articulo of ventas) {
-		const producto = await Productos.findById(articulo._id);
-		producto.cantidad = producto.cantidad + articulo.cantidad;
-		producto.ganancias -= producto.ganancias;
-		if (producto.pedidos.length) {
-			let cantidad = producto.cantidad;
-			const pedidosVentaAnterior = producto.pedidos.reverse();
-			let pedidosActualizados = await devolucionPedidos(pedidosVentaAnterior,cantidad,articulo);
-			for (let i = 0; i < producto.pedidos.length; i++) {
-				for (let e = 0; e < pedidosActualizados.length; e++) {
-					if (pedidosActualizados[e] === producto.pedidos[i]) {
-						producto.pedidos.splice(i, 1);
-						producto.pedidos.push(pedidosActualizados[e]);
-					}
-				}
-			}
-		}
-		await producto.save();
-	}
-}

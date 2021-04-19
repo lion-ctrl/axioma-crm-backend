@@ -92,7 +92,11 @@ exports.mostrarProductos = async (req, res) => {
 			productos = await Productos.find({})
 				.sort({ creado: -1 })
 				.select("_id precioCosto nombre");
-		} else {
+		} else if(req.query.hasOwnProperty("ventas")) {
+			productos = await Productos.find({cantidad: {$gt: 0}})
+				.sort({ creado: -1 })
+				.select("_id precioVenta nombre cantidad");
+		} else {	
 			productos = await Productos.find({}).sort({ creado: -1 });
 		}
 		res.status(200).json(productos);
