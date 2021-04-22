@@ -7,10 +7,14 @@ exports.autenticarUsuario = async (req, res) => {
 	const { email, password } = req.body;
 	try {
 		let usuario = await Usuarios.findOne({ email });
-		if (!usuario) return res.status(400).json({ msg: "No Existe ese usuario" });
+		if (!usuario) {
+			res.status(400).json({ msg: "No Existe ese usuario" });
+			return;
+		}
 
 		if (!bcrypt.compareSync(password, usuario.password)) {
-			return res.status(400).json({ msg: "Contraseña Incorrecta" });
+			res.status(400).json({ msg: "Contraseña Incorrecta" });
+			return;
 		}
 		const token = jwt.sign(
 			{ _id: usuario._id, rol: usuario.rol },
@@ -19,6 +23,7 @@ exports.autenticarUsuario = async (req, res) => {
 		);
 		return res.status(200).json({ token });
 	} catch (error) {
+		res.status(400).json({ msg: "No Existe ese usuario" });
 		console.log(error);
 	}
 };
@@ -53,22 +58,55 @@ exports.crearUsuario = async (req, res) => {
 	}
 };
 
-exports.editarUsuario = async (req,res) => {
+exports.editarUsuario = async (req, res) => {
 	try {
-		const usuario = await Usuarios.findOne({_id: req.params.id});
+		const usuario = await Usuarios.findOne({ _id: req.params.id });
 		if (!usuario) {
-			res.status(400).json({msg: "Ese usuario no existe"});
+			res.status(400).json({ msg: "Ese usuario no existe" });
 			return;
 		}
 
-		if (usuario._id !== req.usuario._id) {
-			res.status(400).json({msg: "Accion no permitida"});
+		if (usuario._id.toString() !== req.usuario._id) {
+			res.status(400).json({ msg: "Accion no permitida" });
 			return;
 		}
 
-		const usuarioActualizado = await Usuarios.findByIdAndUpdate({_id: usuario._id},req.body,{new:true});
-		res.status(200).json(usuarioActualizado);
+		const usuarioActualizado = await Usuarios.findByIdAndUpdate(
+			{ _id: usuario._id },
+			req.body,
+			{ new: true }
+		);
+		res.status(200).json({ usuarioActualizado, msg: "Usuario Editado" });
 	} catch (error) {
-		console.log(error);
+		res.status(500).json({ msg: "Error en el servidor" });
 	}
-}
+};
+
+exports.editarPassword = async (req, res) => {
+	const { email, passanterior, passnueva } = req.body;
+	try {
+		let usuario = await Usuarios.findOne({ email });
+		if (!usuario) {
+			res.status(400).json({ msg: "No Existe ese usuario" });
+			return;
+		}
+
+		if (usuario._id.toString() !== req.usuario._id) {
+			res.status(400).json({ msg: "Accion no permitida" });
+			return;
+		}
+
+		if (!bcrypt.compareSync(passanterior, usuario.password)) {
+			res.status(400).json({ msg: "Contraseña Incorrecta" });
+			return;
+		}
+
+		const salt = await bcrypt.genSalt(10);
+		usuario.password = await bcrypt.hash(passnueva, salt);
+
+		await usuario.save();
+		res.status(200).json({ msg: "Contraseña editada" });
+	} catch (error) {
+		res.status(400).json({ msg: "Error en el servidor" });
+	}
+};

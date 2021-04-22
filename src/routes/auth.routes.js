@@ -7,6 +7,7 @@ router
 	.get("/", authjwt, authController.obtenerUsuario)
 	.post("/", authController.autenticarUsuario)
 	.post("/nuevo-usuario", authjwt, authController.crearUsuario)
-	.put("/:id", authjwt, authController.editarUsuario);
+	.put("/:id", authjwt, authController.editarUsuario)
+	.put("/password/:id", authjwt, authController.editarPassword);
 
 module.exports = router;
