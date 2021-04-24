@@ -15,34 +15,105 @@ exports.nuevaVenta = async (req, res) => {
 				return;
 			} else {
 				producto.cantidad -= articulo.resumen.cantidad;
-				producto.ganancias += articulo.resumen.cantidad * articulo.resumen.precio;
+				producto.ganancias +=
+					articulo.resumen.cantidad * articulo.resumen.precio;
 			}
 			await producto.save();
 		}
-		
+
 		// - Asignar el usuario que realizo la venta
 		let nuevaVenta = new Ventas(req.body);
 		nuevaVenta.usuario = req.usuario._id;
 
 		await nuevaVenta.save();
-		res.status(200).json({msg: "Venta creada"});
+		res.status(200).json({ msg: "Venta creada" });
 	} catch (error) {
 		console.log(error);
-		res.status(400).json({msg: "Error en el servidor"});
+		res.status(400).json({ msg: "Error en el servidor" });
+	}
+};
+
+exports.mostrarVentasSemanal = async (req, res) => {
+	try {
+		const hoy = new Date();
+
+		const [ventas, productosMasVendidos] = await Promise.all([
+			Ventas.aggregate([
+				{
+					$match: {
+						$expr: {
+							$eq: [{ $week: "$creado" }, { $week: hoy }],
+						},
+					},
+				},
+				{
+					$group: {
+						_id: "$dia",
+						total: { $sum: "$total" },
+					},
+				},
+			]),
+			Ventas.aggregate([
+				{
+					$match: {
+						$expr: {
+							$eq: [{ $week: "$creado" }, { $week: hoy }],
+						},
+					},
+				},
+			]),
+		]);
+
+		const productosVentas = [];
+		for (const venta of productosMasVendidos) {
+			for (const producto of venta.productos) {
+				productosVentas.push(producto);
+			}
+		}
+
+		let productos = {};
+		for (const producto of productosVentas) {
+			productos[producto._id] = [...(productos[producto._id] || []), producto];
+		}
+
+		let productosOrdenados = [];
+		for (const producto in productos) {
+			let cantidades = productos[producto].reduce(
+				(obj, producto) => {
+					obj.vendidos += producto.resumen.cantidad;
+					obj.total += producto.resumen.cantidad * producto.resumen.precio;
+					return {
+						_id: producto._id,
+						nombre: producto.nombre,
+						...obj,
+					};
+				},
+				{ vendidos: 0, total: 0 }
+			);
+
+			productosOrdenados.push(cantidades);
+		}
+		productos = productosOrdenados
+			.sort((a, b) => b.vendidos - a.vendidos)
+			.slice(0, 5);
+
+		res.status(200).json({ventas,productos});
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({ msg: "Error en el servidor" });
 	}
 };
 
 exports.mostrarVentas = async (req, res) => {
 	try {
-		const mes = new Date();
+		const hoy = new Date();
 		const ventas = await Ventas.find({
-			$expr: { $eq: [{ $month: "$creado" }, { $month: mes }] },
-		}).sort({creado: -1});
-
+			$expr: { $eq: [{ $month: "$creado" }, { $month: hoy }] },
+		});
 		res.status(200).json(ventas);
 	} catch (error) {
 		console.log(error);
-		res.status(400).json({msg: "Error en el servidor"});
+		res.status(400).json({ msg: "Error en el servidor" });
 	}
 };
 
@@ -64,7 +135,10 @@ exports.mostrarVentasFecha = async (req, res) => {
 
 exports.mostrarVenta = async (req, res) => {
 	try {
-		const venta = await Ventas.findById(req.params.id).populate("usuario","-password");
+		const venta = await Ventas.findById(req.params.id).populate(
+			"usuario",
+			"-password"
+		);
 		if (!venta) return res.status(400).json({ msg: "No existe esa venta" });
 		res.status(200).json(venta);
 	} catch (error) {
@@ -79,7 +153,7 @@ exports.eliminarVenta = async (req, res) => {
 		if (!venta) return res.status(400).json({ msg: "No existe esa venta" });
 
 		await venta.delete();
-		res.status(200).json({_id: venta._id});
+		res.status(200).json({ _id: venta._id });
 	} catch (error) {
 		res.status(400).json({ msg: "No existe esa venta" });
 	}
@@ -114,7 +188,8 @@ exports.editarVenta = async (req, res) => {
 				return;
 			} else {
 				producto.cantidad -= articulo.resumen.cantidad;
-				producto.ganancias += articulo.resumen.cantidad * articulo.resumen.precio;
+				producto.ganancias +=
+					articulo.resumen.cantidad * articulo.resumen.precio;
 				await producto.save();
 			}
 		}

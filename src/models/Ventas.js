@@ -23,6 +23,10 @@ const VentasSchema = new Schema({
 		type: Date,
 		default: Date.now(),
 	},
+	dia: {
+		type: String,
+		default: new Date().getDay()
+	},
 });
 
 module.exports = model("ventas", VentasSchema);
