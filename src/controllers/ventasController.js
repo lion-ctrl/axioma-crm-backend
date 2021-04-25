@@ -36,7 +36,6 @@ exports.nuevaVenta = async (req, res) => {
 exports.mostrarVentasSemanal = async (req, res) => {
 	try {
 		const hoy = new Date();
-
 		const [ventas, productosMasVendidos] = await Promise.all([
 			Ventas.aggregate([
 				{
@@ -96,8 +95,7 @@ exports.mostrarVentasSemanal = async (req, res) => {
 		productos = productosOrdenados
 			.sort((a, b) => b.vendidos - a.vendidos)
 			.slice(0, 5);
-
-		res.status(200).json({ventas,productos});
+		res.status(200).json({ ventas, productos });
 	} catch (error) {
 		console.log(error);
 		res.status(400).json({ msg: "Error en el servidor" });
@@ -106,8 +104,9 @@ exports.mostrarVentasSemanal = async (req, res) => {
 
 exports.mostrarVentas = async (req, res) => {
 	try {
+		let ventas;
 		const hoy = new Date();
-		const ventas = await Ventas.find({
+		ventas = await Ventas.find({
 			$expr: { $eq: [{ $month: "$creado" }, { $month: hoy }] },
 		});
 		res.status(200).json(ventas);

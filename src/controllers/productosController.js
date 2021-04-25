@@ -96,7 +96,7 @@ exports.mostrarProductos = async (req, res) => {
 			productos = await Productos.find({cantidad: {$gt: 0}})
 				.sort({ creado: -1 })
 				.select("_id precioVenta nombre cantidad");
-		} else {	
+		} else {
 			productos = await Productos.find({}).sort({ creado: -1 });
 		}
 		res.status(200).json(productos);
