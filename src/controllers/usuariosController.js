@@ -36,3 +36,14 @@ exports.obtenerUsuario = async (req,res) => {
 		res.status(400).json({ msg: "No existe ese usuario" });
 	}
 }
+
+exports.editarUsuario = async (req,res) => {
+    try {
+		const usuario = await Usuarios.findById(req.params.id);
+		if (!usuario) res.status(400).json({ msg: "No existe ese usuario" });
+		await Usuarios.findByIdAndUpdate({_id:usuario._id},req.body)
+		res.status(200).json({msg: "Usuario Actualizado"});
+	} catch (error) {
+		res.status(400).json({ msg: "No existe ese usuario" });
+	}
+}

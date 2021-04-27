@@ -12,7 +12,17 @@ require("./config/db")();
 app.set("port", process.env.PORT || 4000);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+var whitelist = [process.env.APP_FRONT_END_URL];
+var corsOptions = {
+	origin: function (origin, callback) {
+		if (whitelist.indexOf(origin) !== -1) {
+			callback(null, true);
+		} else {
+			callback(new Error("Not allowed by CORS"));
+		}
+	},
+};
+app.use(cors(corsOptions));
 
 // ? Archivos Estaticos
 app.use(express.static(path.join(__dirname, "public")));

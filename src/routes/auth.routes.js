@@ -5,7 +5,7 @@ const authjwt = require("../middlewares/authjwt");
 
 router
 	.get("/", authjwt, authController.obtenerUsuario)
-	.post("/", authController.autenticarUsuario)
+	.post("/", authController.autenticarUsuario,authController.crearPrimerUsuario)
 	.post("/nuevo-usuario", authjwt, authController.crearUsuario)
 	.put("/:id", authjwt, authController.editarUsuario)
 	.put("/password/:id", authjwt, authController.editarPassword);

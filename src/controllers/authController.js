@@ -3,9 +3,14 @@ const jwt = require("jsonwebtoken");
 
 const Usuarios = require("../models/Usuarios");
 
-exports.autenticarUsuario = async (req, res) => {
+exports.autenticarUsuario = async (req, res, next) => {
 	const { email, password } = req.body;
 	try {
+		const usuarios = await Usuarios.countDocuments();
+		if (usuarios === 0) {
+			next();
+			return;
+		}
 		let usuario = await Usuarios.findOne({ email });
 		if (!usuario) {
 			res.status(400).json({ msg: "No Existe ese usuario" });
@@ -27,6 +32,30 @@ exports.autenticarUsuario = async (req, res) => {
 		console.log(error);
 	}
 };
+
+exports.crearPrimerUsuario = async (req,res) => {
+	const { email, password } = req.body;
+	try {
+		let usuario = new Usuarios();
+		usuario.nombre = "nombre";
+		usuario.apellido = "apellido";
+		usuario.email = email;
+		usuario.rol = "ADMIN";
+		const salt = await bcrypt.genSalt(10);
+		usuario.password = await bcrypt.hash(password, salt);
+		await usuario.save();
+
+		const token = jwt.sign(
+			{ _id: usuario._id, rol: usuario.rol },
+			process.env.SECRETA,
+			{ expiresIn: "12h" }
+		);
+		return res.status(200).json({ token });
+	} catch (error) {
+		res.status(400).json({ msg: "Error en el servidor" });
+		console.log(error);
+	}
+}
 
 exports.obtenerUsuario = async (req, res) => {
 	try {
@@ -59,16 +88,36 @@ exports.crearUsuario = async (req, res) => {
 };
 
 exports.editarUsuario = async (req, res) => {
+
 	try {
 		const usuario = await Usuarios.findOne({ _id: req.params.id });
 		if (!usuario) {
 			res.status(400).json({ msg: "Ese usuario no existe" });
 			return;
 		}
-
 		if (usuario._id.toString() !== req.usuario._id) {
 			res.status(400).json({ msg: "Accion no permitida" });
 			return;
+		}
+
+		if (usuario.rol !== "EMPLEADO") {
+			if (req.body.rol === "EMPLEADO") {
+				const admins = await Usuarios.find({ rol: "ADMIN" }).countDocuments();
+				if (admins === 1) {
+					res
+						.status(400)
+						.json({ msg: "Debe existir al menos un usuario ADMINISTRADOR" });
+					return;
+				}
+			}
+		}
+
+		const clienteEmail = await Usuarios.findOne({ email: req.body.email });
+		if (clienteEmail) {
+			if (clienteEmail._id.toString() !== usuario._id.toString()) {
+				res.status(400).json({ msg: "Ya existe ese correo" });
+				return;
+			}
 		}
 
 		const usuarioActualizado = await Usuarios.findByIdAndUpdate(
