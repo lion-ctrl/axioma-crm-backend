@@ -39,8 +39,8 @@ const ProductosSchema = new Schema({
 		required: true
 	},
 	categoria:{
-		type:String,
-		trim: true
+		type: Schema.Types.ObjectId,
+		ref: "categorias",
 	},
 	creado: {
 		type: Date,

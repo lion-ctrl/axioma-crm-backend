@@ -1,11 +1,13 @@
 const Categorias = require("../models/Categorias");
 
 exports.nuevaCategoria = async (req, res) => {
+
 	const nuevaCategoria = new Categorias(req.body);
 	try {
 		await nuevaCategoria.save();
 		res.status(200).json({ msg: "Categoria creada" });
 	} catch (error) {
+		res.status(400).json({ msg: "Error en el servidor" });
 		console.log(error);
 	}
 };
@@ -18,9 +20,9 @@ exports.actualizarCategoria = async (req, res) => {
 		}
 		categoria.nombre = req.body.nombre;
 		await categoria.save();
-		res.status(200).json({ msg: "Categoria Actualizada" });
+		res.status(200).json(categoria);
 	} catch (error) {
-		res.status(400).json({ msg: "No existe esa categoria" });
+		res.status(400).json({ msg: "Error en el servidor" });
 	}
 };
 
@@ -41,7 +43,7 @@ exports.eliminarCategoria = async (req,res) => {
 			return;
         }
         await Categorias.findByIdAndDelete(req.params.id);
-		res.json({ msg: "Categoria Eliminada" });
+		res.json({ _id: categoria._id });
 	} catch (error) {
 		res.status(400).json({ msg: "No Existe esa categoria" });
 	}
