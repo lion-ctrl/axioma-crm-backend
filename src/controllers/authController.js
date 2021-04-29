@@ -6,8 +6,8 @@ const Usuarios = require("../models/Usuarios");
 exports.autenticarUsuario = async (req, res, next) => {
 	const { email, password } = req.body;
 	try {
-		const usuarios = await Usuarios.countDocuments();
-		if (usuarios === 0) {
+		const usuarios = await Usuarios.find({});
+		if (usuarios.length === 0) {
 			next();
 			return;
 		}
