@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const morgan = require("morgan");
 require("dotenv").config({ path: "variables.env" });
 
 const app = express();
@@ -23,6 +24,7 @@ var corsOptions = {
 	},
 };
 app.use(cors(corsOptions));
+app.use(morgan("dev"));
 
 // ? Archivos Estaticos
 app.use(express.static(path.join(__dirname, "public")));
